@@ -608,7 +608,7 @@ Q11-Q20 resolve the next decision layer from trust UX through commercial/governa
   - PMF lead indicators on-track (Q19/Q28),
   - unit economics on-plan (Q18).
 - **Hold** if exactly one domain misses target with credible corrective plan ≤2 weeks.
-- **Stop immediately** on any trust/compliance critical failure (for example unapproved write or cross-tenant exposure), regardless of other domains.
+- **Stop immediately** on any trust/compliance critical failure (e.g., unapproved write or cross-tenant exposure), regardless of other domains.
 - **Pivot (continue with major strategy change)** if ≥2 non-trust/compliance domains miss targets.
 - Decision forum: Product + Engineering + Security + GTM sign-off.
 

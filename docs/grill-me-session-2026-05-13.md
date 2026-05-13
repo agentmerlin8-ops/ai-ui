@@ -210,3 +210,205 @@ Ten dependency-ordered decisions are now resolved end-to-end, from execution mod
 5. Bring up OTel traces + the 50-prompt golden replay + the 3 SLO dashboards (Q8).
 6. Build the event-sourced canvas with provenance + compensating-event undo (Q9), schema CRDT-ready.
 7. Drive the "PR list → PR detail → approve" slice to the four-week kill/keep gate (Q10).
+
+---
+
+## Q11 — Trust UX contract for agent actions
+
+**Question.** What minimum trust UX must every rendered primitive/action expose so users can verify what happened before they rely on it?
+
+**Agent's recommended answer.** Require a visible provenance panel on every non-trivial primitive: source tools used, freshness timestamp, confidence band, and a one-click event-log trace link; block "high-impact" actions unless provenance is complete.
+
+**Product Owner's answer.** ✅ **Adopt with hard acceptance targets:**
+- **100%** of `List/Grid`, `DetailView`, `Form`, and `ActionButton` instances show source + freshness.
+- **100%** of tool-backed outputs expose trace link (`otel_trace_id` + producing event id).
+- If provenance is missing, render `SetStatus=degraded` and disable guarded actions.
+
+**Reasoning.**
+- Q9 already gives event-level provenance; Q11 makes it user-visible, which is the trust bridge.
+- Falsifiable coverage targets prevent "optional" trust UX drift.
+- Degraded-state behavior aligns with Q3 `capabilities` and avoids silent risk.
+
+---
+
+## Q12 — Approval and guardrail policy for actions
+
+**Question.** Which actions require explicit user approval, and what policy engine enforces it in v1?
+
+**Agent's recommended answer.** Define three action classes: `read` (auto), `write-low-risk` (inline confirm), `write-high-risk` (step-up confirmation + reason + cooldown). Enforce centrally before MCP execution.
+
+**Product Owner's answer.** ✅ **Adopt with v1 policy matrix:**
+- `read`: no approval.
+- `write-low-risk` (comment, label, draft update): single confirm modal.
+- `write-high-risk` (approve/request-changes/merge/close/reopen): typed confirmation + 5-second delay + re-auth if session age >30 min.
+- **SLO:** 0 unapproved write executions; any violation is P0.
+
+**Reasoning.**
+- Dependency from Q7 identity + Q11 trust display to actual action safety.
+- Central policy check keeps enforcement consistent across primitives/connectors.
+- Typed confirmation is measurable and auditable in Q9 event stream.
+
+---
+
+## Q13 — Prompt/context assembly contract
+
+**Question.** How is model context assembled so outputs stay accurate, bounded-cost, and deterministic enough for replay?
+
+**Agent's recommended answer.** Use a deterministic context builder with ordered slots: system policy, session summary, active canvas nodes, selected entity payloads, recent tool results, then user turn; strict token budgets per slot with drop policy.
+
+**Product Owner's answer.** ✅ **Adopt with concrete budgets (v1):**
+- Total prompt budget: **8k tokens**.
+- Slot caps: policy 600, summary 900, canvas 1.5k, entity payloads 2k, recent tools 2k, user turn reserve 1k.
+- Overflow rule: drop oldest tool results first, never drop policy.
+- Log `context_manifest` hash per turn for replay parity.
+
+**Reasoning.**
+- Cost/latency constraints from Q10 require hard caps, not best-effort packing.
+- Deterministic slot ordering improves golden replay stability (Q8).
+- Manifest hashing makes regressions attributable to context changes vs model drift.
+
+---
+
+## Q14 — Memory policy (session vs long-term)
+
+**Question.** What memory is retained beyond a session, and what is forbidden without explicit consent?
+
+**Agent's recommended answer.** Default to ephemeral session memory; long-term memory is opt-in, scoped to workspace preferences and approved aliases, never raw connector payloads.
+
+**Product Owner's answer.** ✅ **Adopt strict memory tiers:**
+- **Tier 0 (default):** session-only, deleted after 30 days.
+- **Tier 1 (opt-in):** user preferences (layout, favorite repos, prompt shortcuts), retained 180 days.
+- **Prohibited:** storing raw issue/PR content, tokens, secrets, or private file blobs as long-term memory.
+- Export/delete endpoint required before external pilot.
+
+**Reasoning.**
+- Aligns with Q7 least-privilege and audit expectations.
+- Prevents accidental data-hoarding risk while preserving useful personalization.
+- Retention windows are clear and testable in governance reviews.
+
+---
+
+## Q15 — First-run onboarding for developer-workbench users
+
+**Question.** What onboarding path gets a new user to first verified value fast, without over-granting permissions?
+
+**Agent's recommended answer.** A guided 5-step flow: sign-in, choose repo, grant read scope, run "open PRs" starter prompt, then optional write-scope upgrade gated by example action.
+
+**Product Owner's answer.** ✅ **Adopt with activation KPI:**
+- Time-to-first-successful "PR list → PR detail" under **10 minutes** for **≥80%** of new dogfood users.
+- Onboarding starts with read-only scopes; write scopes requested only at first write intent.
+- Provide a prefilled starter prompt and one-click rollback tutorial (undo event).
+
+**Reasoning.**
+- Directly operationalizes Q10 slice and Q12 guardrails.
+- Progressive consent reduces drop-off from early permission anxiety.
+- Undo tutorial teaches trust mechanics, not just happy-path usage.
+
+---
+
+## Q16 — Rollout strategy and release gates
+
+**Question.** How do we roll out v1 safely across cohorts while preserving statistically meaningful validation?
+
+**Agent's recommended answer.** Feature-flagged progressive rollout: internal team → extended dogfood → design partners; gate expansion on SLO pass + trust incident rate + cost band.
+
+**Product Owner's answer.** ✅ **Adopt staged rollout plan:**
+- Stage A: 10 internal users (1 week).
+- Stage B: 50 dogfood users across 3 orgs (2 weeks).
+- Stage C: 3 design-partner tenants (4 weeks).
+- Promotion requires for prior 7 days: p95 E2E <15s, schema validity ≥97%, cost p50 ≤$0.10/task, 0 P0 trust incidents.
+
+**Reasoning.**
+- Converts Q8/Q10 metrics into release control, not dashboard theater.
+- Cohort sizing balances safety with enough volume for signal.
+- Tenant staging supports enterprise rollout realities from Q7.
+
+---
+
+## Q17 — Governance for prompts, models, and policies
+
+**Question.** What change-control process governs system prompts, model versions, and guardrail policies?
+
+**Agent's recommended answer.** Treat prompt/model/policy as versioned config artifacts with mandatory review, canary, and rollback; all runtime decisions reference immutable config IDs.
+
+**Product Owner's answer.** ✅ **Adopt governance baseline:**
+- Any change to system prompt, model, tool allowlist, or approval policy requires PR + owner approval from Product and Security.
+- Auto-canary to 5% of Stage cohort for 24h before full rollout.
+- Rollback objective: revert within **15 minutes** via config pin.
+- Every session logs `config_bundle_id`.
+
+**Reasoning.**
+- Agent behavior changes often come from config, not code; governance must cover both.
+- Dual approval aligns with trust/compliance expectations.
+- Fast rollback protects users during model/provider regressions.
+
+---
+
+## Q18 — Pricing model hypothesis for v1
+
+**Question.** What monetization hypothesis do we test first, and what falsifies it?
+
+**Agent's recommended answer.** Seat-based base price plus usage overage is simplest for enterprise procurement while preserving unit-economics control.
+
+**Product Owner's answer.** ✅ **Adopt pricing experiment:**
+- Hypothesis: **$30/dev/month** includes **300 assisted tasks**, then **$0.08/task** overage.
+- Gross margin target at pilot scale: **≥60%**.
+- Falsification: if median active user exceeds 300 tasks with overage rejection >25% or margin <60% for 2 consecutive months, rework model.
+
+**Reasoning.**
+- Aligns to Q10 cost ceiling and enterprise budgeting patterns.
+- Included-task bundle encourages adoption while bounding runaway cost.
+- Clear falsifiers prevent pricing-by-opinion.
+
+---
+
+## Q19 — GTM validation plan
+
+**Question.** Which customer segment and use cases do we validate first, and what evidence counts as PMF signal?
+
+**Agent's recommended answer.** Target platform/dev productivity teams in GitHub-heavy orgs; validate 3 repeat workflows (PR triage, review assist, status synthesis) with measured weekly retention.
+
+**Product Owner's answer.** ✅ **Adopt with explicit evidence bar:**
+- 8 design-partner teams, each with at least 10 weekly active engineers.
+- PMF signal threshold (within 8 weeks):
+  - ≥40% weekly active repeat users,
+  - median self-reported time saved ≥30 min/week,
+  - NPS among active users ≥20,
+  - at least 3 teams request expansion to additional repos/users.
+
+**Reasoning.**
+- Keeps scope aligned to developer-workbench-first positioning.
+- Combines behavior (retention), value (time saved), and buying intent (expansion asks).
+- Thresholds are concrete enough to drive go/no-go.
+
+---
+
+## Q20 — Deprecation and migration strategy
+
+**Question.** How do we deprecate primitive schemas, connector contracts, or models without breaking replay, audit, or active tenants?
+
+**Agent's recommended answer.** Semantic version every contract; support N and N-1 at runtime; provide migration adapters and replay-compat mode until cutoff date.
+
+**Product Owner's answer.** ✅ **Adopt with hard policy:**
+- Runtime must support primitive/connector schema **N and N-1** for minimum **90 days**.
+- Event log always stores original schema/version; replays use version-pinned reducers.
+- Deprecation requires: tenant notice, migration report, and zero unresolved blocker bugs for 14 days before cutoff.
+- Emergency security deprecations allowed with Security sign-off and incident notice.
+
+**Reasoning.**
+- Preserves Q9 replay/audit guarantees while enabling iteration.
+- Advance notice + migration reporting reduces enterprise adoption risk.
+- Security escape hatch avoids policy deadlock during active threats.
+
+---
+
+## Session outcome addendum
+
+Q11-Q20 resolve the next decision layer from trust UX through commercial/governance lifecycle. Newly unlocked next steps:
+
+1. Implement provenance UI + degraded-state disabling and policy-gated action executor.
+2. Build deterministic context assembler with token caps and manifest hashing.
+3. Ship tiered memory controls, retention jobs, and user export/delete flows.
+4. Launch guided onboarding + staged rollout flags tied to SLO promotion gates.
+5. Add config-bundle governance/canary/rollback pipeline and schema deprecation playbook.
+6. Run pricing + design-partner GTM experiments against the defined falsification thresholds.

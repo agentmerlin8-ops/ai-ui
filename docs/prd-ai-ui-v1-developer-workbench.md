@@ -11,7 +11,7 @@ Deliver a constrained, enterprise-ready AI UI workbench that composes a small re
 ## User Stories
 
 1. As a developer, I want to ask for my open pull requests in natural language, so that I can start work without manually navigating multiple screens.
-2. As a developer, I want the app to render a PR list as a structured grid, so that I can quickly scan status, author, and recency.
+2. As a developer, I want the app to render a PR list as a structured grid, so that I can quickly scan status, author, and last update time.
 3. As a developer, I want to drill into a selected PR from the list, so that I can inspect details without losing context.
 4. As a developer, I want each widget to show source and freshness metadata, so that I can trust the information before acting.
 5. As a developer, I want a trace link from a widget to its producing events, so that I can audit what happened.

@@ -611,7 +611,7 @@ Q11-Q20 resolve the next decision layer from trust UX through commercial/governa
   - Reassess at day 14.
   - Move to **Scale** if all gates pass.
   - Move to **Pivot** if exactly one non-trust/compliance domain is still missing.
-  - Move to **Stop** if trust/compliance fails or target misses expand.
+  - Move to **Stop** if trust/compliance fails or misses expand beyond one domain.
 - **Stop immediately** on any trust/compliance critical failure (e.g., unapproved write or cross-tenant exposure), regardless of other domains.
 - **Pivot (continue with major strategy change)** if ≥2 non-trust/compliance domains miss targets; a major strategy change means changing target workflow scope, pricing/GTM model, or core interaction constraints (not minor tuning).
 - Decision forum: Product + Engineering + Security + GTM sign-off.

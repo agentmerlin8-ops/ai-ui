@@ -412,3 +412,222 @@ Q11-Q20 resolve the next decision layer from trust UX through commercial/governa
 4. Launch guided onboarding + staged rollout flags tied to SLO promotion gates.
 5. Add config-bundle governance/canary/rollback pipeline and schema deprecation playbook.
 6. Run pricing + design-partner GTM experiments against the defined falsification thresholds.
+
+---
+
+## Q21 — Implementation sequencing and critical path
+
+**Question.** What delivery sequence proves feasibility fastest while preserving architectural integrity (primitive registry, SSE+POST, MCP, OIDC+OBO, event sourcing)?
+
+**Agent's recommended answer.** Execute four dependency-ordered tracks: (1) contract-first foundations, (2) end-to-end read path, (3) guarded write path, (4) hardening/commercial gates; run in two-week increments with explicit exit criteria.
+
+**Product Owner's answer.** ✅ **Adopt with phased critical path:**
+- **Phase 1 (2 weeks):** primitive schemas + renderer dispatch + SSE+POST session spine + event log append/replay.
+- **Phase 2 (2 weeks):** GitHub MCP read flows + OIDC/OBO broker + PR list → detail slice.
+- **Phase 3 (2 weeks):** guardrailed write actions + approvals + undo + provenance UX.
+- **Phase 4 (2 weeks):** SLO gates, governance automation, pilot readiness package.
+
+**Reasoning.**
+- Orders work by irreducible dependencies from Q1–Q20.
+- Produces usable value by week 4 while still exposing hardest integration seams.
+- Prevents late discovery of trust/compliance blockers.
+
+---
+
+## Q22 — Technical spike plan for top unknowns
+
+**Question.** Which spikes must complete before committing full build-out, and what pass/fail thresholds decide continuation?
+
+**Agent's recommended answer.** Run three spikes in parallel: latency budget, schema-validity/repair effectiveness, and OBO token-broker correctness; each with hard numeric thresholds.
+
+**Product Owner's answer.** ✅ **Adopt three mandatory spikes (1 week each, parallel):**
+1. **Latency spike:** SSE TTFT + end-to-end with MCP read path; pass if p95 E2E <15s, TTFT <1.5s.
+2. **Schema spike:** 50-turn golden run; pass if schema-validity ≥97% with max 2 repairs.
+3. **Identity spike:** OIDC+OBO + session-bounded scopes + re-auth path; pass if 0 unauthorized writes in adversarial tests.
+
+**Reasoning.**
+- Directly tests Q10/Q16 gates before sunk-cost expansion.
+- Concentrates effort on the highest technical and trust risks.
+- Makes go/no-go evidence objective, not intuition-based.
+
+---
+
+## Q23 — Failure modes and resilience baseline
+
+**Question.** What are the primary failure modes in v1, and what must the system do by default when they occur?
+
+**Agent's recommended answer.** Define fail-safe behavior for model/tool/schema/auth/connector failures with degraded UI states, replay-safe events, and bounded retries.
+
+**Product Owner's answer.** ✅ **Adopt resilience matrix:**
+- Model/tool-call invalid → up to 2 repairs, then visible `Error` primitive.
+- MCP timeout/failure → circuit-breaker per connector, cached last-good read (flagged stale), no hidden retries beyond policy.
+- Auth expiry/elevation needed → block action, re-auth prompt, preserve pending intent in event log.
+- Reducer/materialization failure → rollback to last snapshot + render degraded banner.
+
+**Reasoning.**
+- Keeps trust intact by failing visibly and safely.
+- Preserves audit/replay guarantees from event sourcing.
+- Avoids cascading outages from connector instability.
+
+---
+
+## Q24 — Human factors and operator ergonomics
+
+**Question.** What human-process safeguards ensure users and internal operators can use the system correctly under normal and stressed conditions?
+
+**Agent's recommended answer.** Add mandatory UX affordances (provenance, undo, confirmations) plus role-specific runbooks/training for support, security, and product ops.
+
+**Product Owner's answer.** ✅ **Adopt with explicit readiness targets:**
+- New-user completion of undo tutorial: ≥90%.
+- Provenance comprehension check in onboarding: ≥85% correct.
+- Internal ops certification (support + on-call + security triage): 100% before Stage C.
+- Every high-risk action UI must show consequence text and cooldown timer.
+
+**Reasoning.**
+- Human misuse is a top failure mode in agentic products.
+- Training and visible affordances reduce preventable incidents.
+- Aligns trust UX (Q11/Q12) with real behavior, not just design intent.
+
+---
+
+## Q25 — Legal and compliance readiness gate
+
+**Question.** What legal/compliance artifacts are required before external design-partner rollout?
+
+**Agent's recommended answer.** Require DPIA/privacy review, data-flow inventory, retention/deletion evidence, audit-export validation, and contractual language for connector scopes/actions.
+
+**Product Owner's answer.** ✅ **Adopt “no artifacts, no pilot” gate:**
+- Completed DPIA + records of processing.
+- Data classification and connector-by-connector scope matrix.
+- Verified export/delete flows (Q14) with audit evidence.
+- Updated DPA + security addendum covering OBO delegation and action approvals.
+- SOC2 control mapping for append-only audit log and change governance.
+
+**Reasoning.**
+- Enterprise pilots fail fastest on legal gaps, not demos.
+- Existing Q7/Q14/Q17 decisions already imply these obligations.
+- Front-loading compliance avoids expensive rework mid-pilot.
+
+---
+
+## Q26 — Support model and ownership boundaries
+
+**Question.** What support operating model handles v1 incidents and customer issues without ambiguity?
+
+**Agent's recommended answer.** Establish tiered support with strict ownership map across app runtime, connector layer, identity broker, and model/provider issues.
+
+**Product Owner's answer.** ✅ **Adopt v1 support model:**
+- **L1:** user triage, known fixes, incident intake.
+- **L2:** app/runtime + primitive/render issues.
+- **L3:** identity/security + connector specialists + model escalation.
+- Ownership matrix keyed by `config_bundle_id`, connector, and trace IDs.
+- Target response: Sev1 in 15 min, Sev2 in 1 hour during support window.
+
+**Reasoning.**
+- Multi-layer architecture needs explicit ownership to avoid ticket ping-pong.
+- Trace-linked ownership accelerates diagnosis.
+- Response goals align with enterprise expectations for pilot trust.
+
+---
+
+## Q27 — Incident response and recovery playbook
+
+**Question.** What incident protocol is mandatory for trust/safety, availability, and data-handling events?
+
+**Agent's recommended answer.** Define severity rubric, containment actions, rollback paths, communication timelines, and postmortem requirements with tabletop validation.
+
+**Product Owner's answer.** ✅ **Adopt incident playbook with hard controls:**
+- P0 triggers: unapproved write, cross-tenant data exposure, audit-log integrity breach.
+- Immediate containment: disable affected action class or connector via config pin within 15 min.
+- Customer comms: initial notice <60 min for P0/P1.
+- Postmortem: 5-business-day RCA with corrective actions tied to owners/dates.
+- Quarterly tabletop exercises required before GA consideration.
+
+**Reasoning.**
+- Operationalizes Q12 and Q17 under real failure pressure.
+- Fast config rollback is our primary safety lever.
+- Tabletops test people/process, not just architecture.
+
+---
+
+## Q28 — Adoption risk register and mitigations
+
+**Question.** Which adoption risks threaten PMF/GTM thresholds first, and what mitigations are committed now?
+
+**Agent's recommended answer.** Track a quantified risk register spanning trust, latency, cost, workflow fit, and permission friction; attach leading indicators and mitigation triggers.
+
+**Product Owner's answer.** ✅ **Adopt top-five adoption risks with triggers:**
+1. **Permission anxiety** → high drop-off at write-scope prompt; mitigate with progressive consent + just-in-time rationale.
+2. **Latency frustration** → if p95 >15s for 3 days, pause cohort expansion.
+3. **Cost blowout** → if p50 cost >$0.10/task for 2 weeks, gate new tenants.
+4. **Low repeat usage** → if WAU repeat <40%, run workflow-fit interviews within 7 days.
+5. **Trust hesitation** → if provenance click-through <30%, improve explainability UX before scale.
+
+**Reasoning.**
+- Directly links to Q10/Q18/Q19 thresholds.
+- Converts risks into measurable early-warning signals.
+- Forces mitigation action before PMF evidence is distorted.
+
+---
+
+## Q29 — Feasibility proof package for design partners
+
+**Question.** What evidence bundle must be shown to design partners to credibly prove readiness for controlled production use?
+
+**Agent's recommended answer.** Deliver a standardized proof package: architecture controls, benchmark results, failure drill outcomes, compliance artifacts, and support commitments.
+
+**Product Owner's answer.** ✅ **Adopt “Pilot Readiness Dossier” requirement:**
+- End-to-end demo of PR list → detail → guarded action with provenance + undo.
+- Last-30-day SLO report (latency, schema validity, trust incidents).
+- Spike outcomes from Q22 and failure drill results from Q27.
+- Compliance packet from Q25.
+- Named support contacts, escalation paths, and response targets.
+
+**Reasoning.**
+- Buyers need verifiable proof, not roadmap promises.
+- Aligns technical readiness with procurement/security review workflows.
+- Standard dossier shortens pilot-cycle friction across tenants.
+
+---
+
+## Q30 — Final confidence gate and decision authority
+
+**Question.** What final gate decides whether to continue scaling, hold, or pivot after this tranche?
+
+**Agent's recommended answer.** Use a weighted confidence gate combining technical, trust, compliance, and adoption metrics with explicit decision ownership.
+
+**Product Owner's answer.** ✅ **Adopt final confidence gate:**
+- **Scale** only if all are true for previous 14 days:
+  - SLO gates pass (Q16),
+  - 0 P0 trust incidents,
+  - legal/compliance artifacts complete (Q25),
+  - PMF lead indicators on-track (Q19/Q28),
+  - unit economics on-plan (Q18).
+- **Hold** if exactly one domain misses target with credible corrective plan ≤2 weeks.
+- **Pivot/stop** if ≥2 domains miss targets or trust/compliance fails.
+- Decision forum: Product + Engineering + Security + GTM sign-off.
+
+**Reasoning.**
+- Prevents “ship by optimism.”
+- Preserves the existing kill/keep discipline from Q10.
+- Ensures cross-functional accountability for scale decisions.
+
+---
+
+## Session outcome addendum
+
+**Shared understanding status:** **Achieved** for execution feasibility and operational readiness through a concrete Q21–Q30 dependency chain.
+
+## Confidence statement
+
+**Confidence: High (conditional).** Confidence is high **if** Q22 spikes pass and Q25/Q27 readiness gates are fully met before expanding beyond controlled pilots.
+
+## Prioritized actionable checklist
+
+1. Run Q22 spikes in parallel; publish pass/fail report within 7 days.  
+2. Execute Phase 1–2 critical path (Q21) to deliver read-path slice by week 4.  
+3. Implement resilience matrix + degraded-state UX (Q23) before guarded writes.  
+4. Complete legal/compliance artifact pack (Q25) before Stage C onboarding.  
+5. Stand up support ownership + incident playbook + tabletop (Q26–Q27).  
+6. Activate risk register monitoring and trigger policies (Q28).  
+7. Assemble Pilot Readiness Dossier and run Q30 confidence gate review.

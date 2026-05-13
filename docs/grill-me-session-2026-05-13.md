@@ -607,7 +607,11 @@ Q11-Q20 resolve the next decision layer from trust UX through commercial/governa
   - legal/compliance artifacts complete (Q25),
   - PMF lead indicators on-track (Q19/Q28),
   - unit economics on-plan (Q18).
-- **Hold** if exactly one domain misses target with credible corrective plan ≤2 weeks; reassess at day 14 and then either **Scale** (if all gates pass), **Pivot** (if still missing one non-trust/compliance domain), or **Stop** (if trust/compliance fails or misses expand).
+- **Hold** if exactly one domain misses target with credible corrective plan ≤2 weeks.
+  - Reassess at day 14.
+  - Move to **Scale** if all gates pass.
+  - Move to **Pivot** if exactly one non-trust/compliance domain is still missing.
+  - Move to **Stop** if trust/compliance fails or target misses expand.
 - **Stop immediately** on any trust/compliance critical failure (e.g., unapproved write or cross-tenant exposure), regardless of other domains.
 - **Pivot (continue with major strategy change)** if ≥2 non-trust/compliance domains miss targets; a major strategy change means changing target workflow scope, pricing/GTM model, or core interaction constraints (not minor tuning).
 - Decision forum: Product + Engineering + Security + GTM sign-off.

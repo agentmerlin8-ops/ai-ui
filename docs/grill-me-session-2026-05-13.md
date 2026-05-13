@@ -443,7 +443,11 @@ Q11-Q20 resolve the next decision layer from trust UX through commercial/governa
 **Product Owner's answer.** ✅ **Adopt three mandatory spikes (1 week each, parallel):**
 1. **Latency spike:** SSE TTFT + end-to-end with MCP read path; pass if p95 E2E <15s, TTFT <1.5s.
 2. **Schema spike:** 50-turn golden run; pass if schema-validity ≥97% with max 2 repairs.
-3. **Identity spike:** OIDC+OBO + session-bounded scopes + re-auth path; pass if 0 unauthorized writes across defined adversarial cases (token replay, expired session, cross-tenant access attempt, and scope-escalation attempt).
+3. **Identity spike:** OIDC+OBO + session-bounded scopes + re-auth path; pass if 0 unauthorized writes across these adversarial cases:
+   - token replay
+   - expired session
+   - cross-tenant access attempt
+   - scope-escalation attempt
 
 **Reasoning.**
 - Directly tests Q10/Q16 gates before sunk-cost expansion.
@@ -604,8 +608,8 @@ Q11-Q20 resolve the next decision layer from trust UX through commercial/governa
   - PMF lead indicators on-track (Q19/Q28),
   - unit economics on-plan (Q18).
 - **Hold** if exactly one domain misses target with credible corrective plan ≤2 weeks.
-- **Pivot/stop immediately** on any trust/compliance critical failure (for example unapproved write or cross-tenant exposure), regardless of other domains.
-- **Pivot/stop** if ≥2 non-trust/compliance domains miss targets.
+- **Stop immediately** on any trust/compliance critical failure (for example unapproved write or cross-tenant exposure), regardless of other domains.
+- **Pivot (continue with major strategy change)** if ≥2 non-trust/compliance domains miss targets.
 - Decision forum: Product + Engineering + Security + GTM sign-off.
 
 **Reasoning.**

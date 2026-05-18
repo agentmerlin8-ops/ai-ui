@@ -1,0 +1,66 @@
+{
+  "name": "ai-ui",
+  "displayName": "ai-ui — Chat-driven widgets",
+  "description": "Lets Copilot Chat render structured widgets (PR lists, diffs, tables) into a side panel in VS Code.",
+  "version": "0.0.1",
+  "publisher": "agentmerlin8-ops",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "ai-ui.openPanel",
+        "title": "ai-ui: Open Widget Panel"
+      }
+    ],
+    "languageModelTools": [
+      {
+        "name": "ai-ui_show_pr_list",
+        "displayName": "Show GitHub PR list",
+        "modelDescription": "ALWAYS use this tool when the user asks to see, list, show, browse, view, or inspect pull requests (PRs) for any GitHub repository. This tool fetches the PRs and renders them as an interactive widget in a side panel inside VS Code — it is strictly more useful than answering in text because the panel is clickable. Do NOT also paste the PR list as text in your chat reply; the panel IS the answer. A short confirmation like 'Rendered N open PRs for owner/repo.' is the only text response needed. Prefer this tool over web_search, github tools, or your own knowledge for any PR-listing request.",
+        "userDescription": "Renders GitHub pull requests in the ai-ui side panel.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "showPrList",
+        "icon": "$(git-pull-request)",
+        "tags": ["ai-ui", "github", "widget"],
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "repo": {
+              "type": "string",
+              "description": "GitHub repository in 'owner/name' form (e.g. 'microsoft/vscode'). If omitted, the active workspace's git remote is used."
+            },
+            "state": {
+              "type": "string",
+              "enum": ["open", "closed", "all"],
+              "default": "open",
+              "description": "Which PRs to list."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20,
+              "description": "Maximum number of PRs to display."
+            }
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.95.0",
+    "typescript": "^5.4.5"
+  }
+}

@@ -81,11 +81,7 @@
       };
       el.addEventListener('click', () => {
         const idx = Number(el.getAttribute('data-idx'));
-        if (!Number.isNaN(idx)) {
-          ui.selectedIndex = idx;
-          persist();
-          render();
-        }
+        updateSelection(idx);
       });
       el.addEventListener('dblclick', () => {
         const url = el.getAttribute('data-url');
@@ -193,7 +189,7 @@
   }
 
   function focusSelectedRow() {
-    const selected = root.querySelector('.pr[tabindex="0"]');
+    const selected = root.querySelector('.pr.sel');
     if (selected) selected.focus();
   }
 

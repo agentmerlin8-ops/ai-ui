@@ -28,14 +28,23 @@ export function activate(context: vscode.ExtensionContext): void {
   const tool: vscode.LanguageModelTool<ShowPrListInput> = {
     async invoke(options, token) {
       const input = options.input ?? {};
-      const repo = (input.repo ?? '').trim() || (await detectWorkspaceRepo());
-      if (!repo) {
+      const rawRepo = (input.repo ?? '').trim() || (await detectWorkspaceRepo());
+      if (!rawRepo) {
         return new vscode.LanguageModelToolResult([
           new vscode.LanguageModelTextPart(
             'No repository specified and no GitHub remote was detected in the active workspace. Ask the user for an owner/name.',
           ),
         ]);
       }
+      const parsedRepo = parseOwnerAndName(rawRepo);
+      if (!parsedRepo) {
+        return new vscode.LanguageModelToolResult([
+          new vscode.LanguageModelTextPart(
+            `Repository must be in 'owner/name' format (for example 'microsoft/vscode'). Received '${rawRepo}'.`,
+          ),
+        ]);
+      }
+      const repo = `${parsedRepo.owner}/${parsedRepo.name}`;
       const state = input.state ?? 'open';
       const limit = clamp(input.limit ?? 20, 1, 50);
 
@@ -75,6 +84,12 @@ export function deactivate(): void {
   // no-op
 }
 
+function parseOwnerAndName(repo: string): { owner: string; name: string } | undefined {
+  const m = repo.trim().match(/^([^/\s]+)\/([^/\s]+)$/);
+  if (!m) return undefined;
+  return { owner: m[1], name: m[2] };
+}
+
 function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
 }
@@ -85,6 +100,10 @@ async function fetchPullRequests(
   limit: number,
   token: vscode.CancellationToken,
 ): Promise<GhPullRequest[]> {
+  const parsedRepo = parseOwnerAndName(repo);
+  if (!parsedRepo) {
+    throw new Error(`Invalid repository '${repo}'. Expected 'owner/name'.`);
+  }
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
@@ -93,8 +112,8 @@ async function fetchPullRequests(
   const auth = await getGitHubToken();
   if (auth) headers.Authorization = `Bearer ${auth}`;
 
-  const url = `https://api.github.com/repos/${encodeURIComponent(repo.split('/')[0])}/${encodeURIComponent(
-    repo.split('/')[1] ?? '',
+  const url = `https://api.github.com/repos/${encodeURIComponent(parsedRepo.owner)}/${encodeURIComponent(
+    parsedRepo.name,
   )}/pulls?state=${encodeURIComponent(state)}&per_page=${limit}&sort=updated&direction=desc`;
 
   const controller = new AbortController();

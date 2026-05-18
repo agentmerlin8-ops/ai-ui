@@ -34,7 +34,14 @@
 
     const rows = prs
       .map((pr, i) => `
-        <li class="pr ${i === selIdx ? 'sel' : ''}" data-idx="${i}" data-url="${esc(pr.url)}">
+        <li
+          class="pr ${i === selIdx ? 'sel' : ''}"
+          role="option"
+          tabindex="${i === selIdx ? '0' : '-1'}"
+          aria-selected="${i === selIdx ? 'true' : 'false'}"
+          data-idx="${i}"
+          data-url="${esc(pr.url)}"
+        >
           <div class="pr-head">
             <span class="pr-num">#${pr.number}</span>
             ${pr.draft ? '<span class="pr-tag draft">draft</span>' : ''}
@@ -56,7 +63,7 @@
       </header>
       <div class="split" style="--split-left: ${ui.splitPct}%">
         <aside class="pane pane-left">
-          <ul class="pr-list">${rows || '<li class="empty">No pull requests.</li>'}</ul>
+          <ul class="pr-list" role="listbox" aria-label="Pull requests">${rows || '<li class="empty">No pull requests.</li>'}</ul>
         </aside>
         <div class="splitter" role="separator" aria-orientation="vertical" tabindex="0" title="Drag to resize"></div>
         <section class="pane pane-right">${detailHtml(prs[selIdx])}</section>
@@ -64,6 +71,14 @@
     `;
 
     root.querySelectorAll('li.pr').forEach((el) => {
+      const updateSelection = (idx) => {
+        if (!Number.isNaN(idx) && idx >= 0 && idx < prs.length && idx !== ui.selectedIndex) {
+          ui.selectedIndex = idx;
+          persist();
+          render();
+          focusSelectedRow();
+        }
+      };
       el.addEventListener('click', () => {
         const idx = Number(el.getAttribute('data-idx'));
         if (!Number.isNaN(idx)) {
@@ -75,6 +90,35 @@
       el.addEventListener('dblclick', () => {
         const url = el.getAttribute('data-url');
         if (url) vscode.postMessage({ type: 'openUrl', url });
+      });
+      el.addEventListener('keydown', (e) => {
+        const idx = Number(el.getAttribute('data-idx'));
+        if (Number.isNaN(idx)) return;
+        if (e.key === 'ArrowDown') {
+          updateSelection(Math.min(prs.length - 1, idx + 1));
+          e.preventDefault();
+          return;
+        }
+        if (e.key === 'ArrowUp') {
+          updateSelection(Math.max(0, idx - 1));
+          e.preventDefault();
+          return;
+        }
+        if (e.key === 'Home') {
+          updateSelection(0);
+          e.preventDefault();
+          return;
+        }
+        if (e.key === 'End') {
+          updateSelection(prs.length - 1);
+          e.preventDefault();
+          return;
+        }
+        if (e.key === 'Enter' || e.key === ' ') {
+          const url = el.getAttribute('data-url');
+          if (url) vscode.postMessage({ type: 'openUrl', url });
+          e.preventDefault();
+        }
       });
     });
 
@@ -146,6 +190,11 @@
 
   function clampPct(p) {
     return Math.max(20, Math.min(80, p));
+  }
+
+  function focusSelectedRow() {
+    const selected = root.querySelector('.pr[tabindex="0"]');
+    if (selected) selected.focus();
   }
 
   function persist() {

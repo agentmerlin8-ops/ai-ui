@@ -128,8 +128,8 @@ async function detectWorkspaceRepo(): Promise<string | undefined> {
     const text = Buffer.from(bytes).toString('utf8');
     // Look for the first github.com remote URL (https or ssh form).
     const m =
-      text.match(/url\s*=\s*https:\/\/github\.com\/([^/\s]+)\/([^/\s.]+?)(?:\.git)?\s*$/m) ||
-      text.match(/url\s*=\s*git@github\.com:([^/\s]+)\/([^/\s.]+?)(?:\.git)?\s*$/m);
+      text.match(/url\s*=\s*https:\/\/github\.com\/([^/\s]+)\/([^/\s]+?)(?:\.git)?\s*$/m) ||
+      text.match(/url\s*=\s*git@github\.com:([^/\s]+)\/([^/\s]+?)(?:\.git)?\s*$/m);
     if (m) return `${m[1]}/${m[2]}`;
   } catch {
     // .git/config missing or unreadable

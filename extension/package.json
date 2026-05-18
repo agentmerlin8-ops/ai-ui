@@ -1,0 +1,66 @@
+{
+  "name": "ai-ui",
+  "displayName": "ai-ui — Chat-driven widgets",
+  "description": "Lets Copilot Chat render structured widgets (PR lists, diffs, tables) into a side panel in VS Code.",
+  "version": "0.0.1",
+  "publisher": "agentmerlin8-ops",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "ai-ui.openPanel",
+        "title": "ai-ui: Open Widget Panel"
+      }
+    ],
+    "languageModelTools": [
+      {
+        "name": "ai-ui_show_pr_list",
+        "displayName": "Show GitHub PR list",
+        "modelDescription": "Use this tool when the user wants to see, list, browse, view, or inspect pull requests for a GitHub repository and a rendered side-panel widget is the desired result. This tool fetches PRs and renders them as an interactive widget in VS Code, so for straightforward PR-listing requests the panel should be the primary answer; keep the chat response brief instead of repeating the full list in text. Do not use this tool for non-PR requests such as issues, commits, branches, reviews, code search, repository analysis, or general GitHub questions. Do not use it for non-GitHub repositories, and if this extension only supports GitHub.com repositories in 'owner/name' form, avoid using it for GitHub Enterprise or other hosts. This tool depends on repository access, authentication, network availability, and GitHub API limits, so it may fail or return incomplete results when the user is not authenticated, lacks permission, or hits rate limits.",
+        "userDescription": "Renders GitHub pull requests in the ai-ui side panel.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "showPrList",
+        "icon": "$(git-pull-request)",
+        "tags": ["ai-ui", "github", "widget"],
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "repo": {
+              "type": "string",
+              "description": "GitHub repository in 'owner/name' form (e.g. 'microsoft/vscode'). If omitted, the active workspace's git remote is used."
+            },
+            "state": {
+              "type": "string",
+              "enum": ["open", "closed", "all"],
+              "default": "open",
+              "description": "Which PRs to list."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20,
+              "description": "Maximum number of PRs to display."
+            }
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "1.95.0",
+    "typescript": "^5.4.5"
+  }
+}

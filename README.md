@@ -1,65 +1,76 @@
 # ai-ui
 
-## Overview
+A VS Code extension that lets Copilot Chat render structured, interactive
+widgets in a side panel — pull-request lists, diffs, tables, timelines —
+so chat answers become *clickable surfaces* instead of walls of text.
 
-Modern work happens across many disconnected systems: APIs, databases, GitHub, work tracking tools, documents, chat systems, file stores, and internal business applications. Today, connecting people to that information usually requires teams to build custom user interfaces for each workflow, each data source, and each role. This makes software expensive to build, slow to adapt, and difficult to personalize in real time.
+> Status: early research extension. Single working tool (`show_pr_list`).
+> See [docs/vision.md](docs/vision.md) for where this is going,
+> [docs/architecture.md](docs/architecture.md) for how it's built, and
+> [docs/scope.md](docs/scope.md) for what it explicitly is and isn't, and
+> [docs/ai-extensibility-standards.md](docs/ai-extensibility-standards.md)
+> for coding and architecture guardrails.
+> For the emerging cloud-agent direction, see
+> [docs/pi-coding-agent-integration.md](docs/pi-coding-agent-integration.md).
 
-The core hypothesis for this project is that a UI does not always need to be predesigned in full. Instead, an AI agent—potentially even one backed by a relatively low-cost model—may be able to compose, modify, and connect simple UI widgets on demand using natural-language instructions from a user.
+## What it does today
 
-## Vision
+A single language-model tool:
 
-Build an experimental AI-driven UI workbench where users can request information and workflows in natural language, and the system dynamically creates or modifies the interface to support the task.
+- **`ai-ui_show_pr_list`** — fetches GitHub pull requests for a repo and
+  renders them as an interactive master/detail widget in a side panel
+  beside the editor. If `repo` is omitted, the tool reads
+  `.git/config` from the current workspace.
 
-Example interaction:
-- A user says: "Show me a list of invoices for customer XYZ."
-- The system creates a grid widget in a canvas area showing relevant invoice fields.
-- The user then says: "Tell me more about invoice 123."
-- The system opens or transforms the interface to show detailed information for that invoice.
-- Each widget is intentionally simple and acts as a stepping stone to other widgets, views, or actions.
+The widget panel is a singleton webview: each tool call swaps its
+contents. Click a PR row → see detail; click "Open on GitHub" → opens
+in your browser; the splitter is draggable.
 
-The broader goal is to create a new human-computer interaction model that is less dependent on fixed screens, keyboard, and mouse, and more driven by voice, natural language, gesture, and adaptive presentation.
+## Why
 
-## Initial Product Direction
+Every developer-facing system (GitHub, Azure DevOps, Azure, Teams,
+SharePoint, Figma, ...) already has a VS Code extension. `ai-ui` isn't
+trying to replace any of them. The bet is that **chat + composable
+widgets** unlock things a fixed UI can't:
 
-The first target use case is a developer workbench: a unified environment that helps a software builder interact with the systems they use most often.
+1. **Composition across sources** — "Show me everything assigned to me."
+2. **Intent over navigation** — "What's blocked on me?" beats four
+   menu clicks.
+3. **Editor context for free** — active file, branch, selection, error.
+4. **Conversational refinement** — "Group by author." "Filter to auth
+   team." The widget re-renders.
+5. **Action chains** — chat orchestrates a sequence of widget steps.
 
-Potential data sources and tools include:
-- GitHub Copilot agent sessions
-- GitHub repositories, issues, and pull requests
-- Azure DevOps work items
-- SharePoint files
-- chat/context sources
-- other software-delivery and knowledge-management systems
+## Repository layout
 
-## Problem Statement
+```
+ai-ui/
+  docs/                  # vision, architecture, scope, standards
+  extension/             # the VS Code extension source
+    src/
+    media/
+    package.json
+  skills/                # third-party engineering skill docs (vendored)
+  .vscode/               # launch + tasks for F5
+  LICENSE
+  README.md
+```
 
-There is currently no simple, reliable framework for:
-1. interpreting a user’s natural-language intent,
-2. identifying the relevant data sources and actions,
-3. selecting or generating appropriate UI widgets,
-4. placing those widgets into a coherent workspace,
-5. enabling iterative drill-down and refinement through continued conversation.
+## Quick start (developing the extension)
 
-Most existing software assumes:
-- workflows are known in advance,
-- screens are statically designed,
-- user needs are predictable,
-- interaction happens primarily through mouse and keyboard.
+```bash
+cd extension
+npm install
+npm run compile
+```
 
-This project challenges those assumptions.
+Then from the repo root in VS Code press **F5** to launch an Extension
+Development Host. In that window, with Copilot Chat in Agent mode, ask:
 
-## Research Question
+> Show me the open PRs for microsoft/vscode
 
-Can an AI-guided system dynamically assemble and evolve a useful user interface from simple composable widgets, using natural language as the primary control mechanism, while remaining understandable, reliable, and efficient enough for real work?
+The widget panel opens beside the editor.
 
-## Near-Term Goals
+## License
 
-- Define a minimal set of widget primitives
-- Build a canvas-based workbench metaphor
-- Support conversational widget creation and modification
-- Integrate a small set of developer-focused data sources
-- Instrument the system to evaluate accuracy, usability, trust, and speed
-
-## Long-Term Goal
-
-Establish a rigorous, experiment-driven foundation for a new class of software experience: systems where the interface itself is not fixed in advance, but is continuously shaped by user intent through natural language, and eventually voice and gesture.
+[MIT](LICENSE)

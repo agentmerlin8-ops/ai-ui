@@ -48,7 +48,7 @@ export function activate(context: vscode.ExtensionContext): void {
       const state = input.state ?? 'open';
       const limit = clamp(input.limit ?? 20, 1, 50);
 
-      const prs = await fetchPullRequests(repo, state, limit, token);
+      const prs = await fetchPullRequests(parsedRepo, state, limit, token);
       const payload: PrListPayload = {
         kind: 'pr-list',
         repo,
@@ -95,15 +95,11 @@ function clamp(n: number, lo: number, hi: number): number {
 }
 
 async function fetchPullRequests(
-  repo: string,
+  repo: { owner: string; name: string },
   state: string,
   limit: number,
   token: vscode.CancellationToken,
 ): Promise<GhPullRequest[]> {
-  const parsedRepo = parseOwnerAndName(repo);
-  if (!parsedRepo) {
-    throw new Error(`Invalid repository '${repo}'. Expected 'owner/name'.`);
-  }
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
@@ -112,8 +108,8 @@ async function fetchPullRequests(
   const auth = await getGitHubToken();
   if (auth) headers.Authorization = `Bearer ${auth}`;
 
-  const url = `https://api.github.com/repos/${encodeURIComponent(parsedRepo.owner)}/${encodeURIComponent(
-    parsedRepo.name,
+  const url = `https://api.github.com/repos/${encodeURIComponent(repo.owner)}/${encodeURIComponent(
+    repo.name,
   )}/pulls?state=${encodeURIComponent(state)}&per_page=${limit}&sort=updated&direction=desc`;
 
   const controller = new AbortController();

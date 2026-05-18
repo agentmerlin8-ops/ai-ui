@@ -167,8 +167,9 @@
   }
 
   function relTime(iso) {
-    const t = Date.parse(iso);
-    if (!isFinite(t)) return iso;
+    const raw = String(iso ?? '');
+    const t = Date.parse(raw);
+    if (!isFinite(t)) return esc(raw);
     const s = Math.round((Date.now() - t) / 1000);
     if (s < 60) return `${s}s ago`;
     const m = Math.round(s / 60);
